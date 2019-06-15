@@ -1,0 +1,420 @@
+#!/bin/bash2
+
+############  mvgp: move group (or cpgp: copy group) #############
+
+version=1.2
+
+cmdname=`basename $0`
+
+if [ $cmdname = "mvgp" ]
+then
+	mv=mv
+elif [ $cmdname = "cpgp" ]
+then
+	mv=cp
+else
+	echo "$0: This script should be called \"mvgp\" and have a"
+	echo "	symbolic link to it called \"cpgp\".  Please fix it."
+	exit 1
+fi
+
+usage()
+{
+	echo "mvgp - rename a group of files"
+	echo "cpgp - copy a group of files"
+	echo "usage:	$cmdname [-opts] pattern replacement files..."
+	echo "use '$cmdname -h' for more help"
+
+	exit 1
+}
+
+help()
+{
+echo "NAME
+----
+	mvgp - rename a group of files
+	cpgp - make copies of a group of files
+
+SYNOPSIS
+--------
+	mvgp [-options] pattern replacement files...
+	cpgp [-options] pattern replacement files...
+
+DESCRIPTION
+-----------
+
+mvgp and cpgp operate on a group of files, changing their names using a
+search-and-replace method specified by the first two non-option arguments
+(called \"pattern\" and \"replacement\" above).
+
+mvgp renames files, identically to the mv(1) command, and cpgp copies
+files in a manner identical to the cp(1) command.
+
+\"pattern\" is the substring that exists in the files' names, that is to be
+replaced with \"replacement\".  \"pattern\" and \"replacement\" may contain
+slash characters that will be interpreted as directory path specifiers.
+
+SPECIFYING PATTERNS
+---------- --------
+
+\"pattern\" is treated as a pattern that can match parts of file names in
+the argument list using the '*', '?' and '[]' metacharacters.  This matching
+happens after the shell has created a list of filenames, which may also
+involve expanding metacharacters.
+
+If the pattern begins with a '#', it must match at the beginning of the
+file name.  If the pattern begins with a '%', it must match at the end of
+the file name.  See the section on \"Parameter Expansion\" in the bash2(1)
+manual page for details.
+
+OPTIONS
+-------
+	-b, -f, -i, -S suffix, -u, -V word	(mvgp or cpgp)
+	-a, -d, -l, -p, -P, -r, -R, -s, -x	(cpgp only)
+		These are passed directly through to the mv or cp command,
+		which does the actual renaming or copying of files.  See
+		mv(1) and cp(1) for documentation on these.
+
+	-C	Noclobber.  Don't replace files that already exist.
+
+	-h	Show this help message.
+
+	-I	Interactive - ask for permission before renaming or copying.
+		The the operation that is about to be performed is printed,
+		followed by a '?'.  Valid responses are:
+
+			y, Y, Yes, yes, YES: Go ahead and rename or copy
+				the file.
+			n, N, No, no, NO: Skip the file.
+			a, A, All, all, ALL: Perform this renaming or copying,
+				and all others that follow (exit -I mode).
+			q, Q, Quit, quit, QUIT: Don't rename or copy this file
+				or any others that follow. (Exit the program.)
+
+		All other responses are treated as a 'no'.  The response
+		must be followed by a press of the Enter (Return) key.
+
+	-L	("Loud") Report what mv or cp operations are performed, using
+		the exact syntax of the mv or cp command that was executed.
+
+	-m	Perform multiple substitutions.  If pattern exists more
+		than once in the original file name, it will be replaced
+		for each occurrance.  Without the -m option, only the first
+		occurrance will be replaced.
+
+	-n	Don't rename or copy files; just tell what would be done.
+		(Show the exact mv or cp commands that would execute.)
+
+	-v	Report release version of mvgp/cpgp and the mv or cp command.
+		Don't do anything else.
+
+EXAMPLES
+--------
+
+Example 1: Inserting
+
+cpgp txt bak.txt book*
+
+Make backup files of all files whose names start with \"book\".  The
+substring \"txt\" in the files' names is replaced with \"bak.txt\".
+For example, if there were files called
+
+book-chapter-1.txt
+book-chapter-2.txt
+book-chapter-3.txt
+
+copies of those files would be made with the names
+
+book-chapter-1.bak.txt
+book-chapter-2.bak.txt
+book-chapter-3.bak.txt
+
+Example 2: Replacing
+
+	mvgp new old *new*
+
+For each file in the current directory that has the string \"new\" anywhere
+in its name, replace the first occurrance of \"new\" with \"old\".  Files
+called ...
+
+the-new-version.c
+new-version-header.h
+my-new-version.readme
+a_new_newt
+newspaper.doc
+	
+... would be renamed as ...
+
+the-old-version.c
+old-version-header.h
+my-old-version.readme
+a_old_newt
+oldspaper.doc
+
+Example 3: De-spacing file names
+
+	mvgp -m -L ' ' - *
+
+Replace all of the spaces in filenames of files in the current directory
+with dash (minus) characters.  Report each rename operation that happens.
+
+Example 4: Deleting
+
+	mvgp '-' "" -*
+
+For files in the current directory whose names start with a '-' character,
+remove that leading '-' from the name (i.e., replace the '-' with nothing).
+Note that in this case, it is not necessary to give mvgp a '--' option to
+keep it from treating '-' as an option.  However, if the pattern were '-m'
+or something else that looks like a valid option, then the command would be
+
+	mvgp -- '-m' 'm' -*
+
+(which would do the same thing as the first command).
+
+Example 5: Changing the extensions, or end of files' names
+
+	mvgp '%.old' .bak *.old
+
+For all files in the current directory that end in \".old\", the extension
+will be changed to \".bak\".
+
+Example 6: Changing the beginning of the names
+
+	mvgp '#re' un re*
+
+All files in the current directory whose names start with \"re\" will have
+\"re\" changed to \"un\" in their names.  (I.e., files named \"redo.1\" and
+\"redo.2\" will be renamed \"undo.1\" and \"undo.2\", respectively.)
+
+Example 7: Pattern matching in the pattern
+
+Suppose we have files named
+
+written-by-Stan
+painted-by-Jane
+sculpted-by-Bob
+built-by-Andrew
+
+and we want to change them to all start out with \"created-by\".  One way
+to do that would be
+
+	mvgp '*-by' created-by *-by-*
+
+If we only wanted to operate on the first three, we could say
+
+	mvgp '*e?-by' created-by *-by-*
+or
+	mvgp '*-by' created-by *e?-by-*
+
+Example 8: Directories in search-and-replace strings
+
+	mvgp 'projects/' 'backburner/source-' projects/code/*
+
+move all of the files and directories in the subdirectory \"projects/code\" to
+the directory \"backburner/source-code\".
+
+IMPLEMENTATION
+--------------
+
+mvgp and cpgp are implemented as a single bash2 shell script.  Both commands
+are actually the same program; the function is determined by the name of the
+executable file.  Thus, it is important that the program either be called
+\"mvgp\" or \"cpgp\", and a symbolic link can be made to it with the other
+command's name.
+
+SEE ALSO
+--- ----
+
+cp(1), mv(1), bash2(1)
+
+COPYRIGHT
+---------
+
+Copyright 2000 Jay Ts.
+mvgp and cpgp are being released under the GPL (GNU Public License).
+You may find a copy of the GPL at <http://www.fsf.org>.
+
+BUGS
+----
+
+None known, but this is a very early release, so be careful.
+See if you can break it, and report bugs you find to the author.
+
+AUTHOR
+------
+
+Jay Ts 
+email: jay@jayts.com
+website: http://jayts.com" | less -P 'Press the SPACE BAR for more, Q key to quit, or up/down arrows to scroll '
+}
+
+mvopts=""
+
+# tag some variables as integers
+
+typeset -i noclobber interactive interactive_all multiple talkonly verbose
+
+interactive=0		# -I option
+interactive_all=0	# if "a" or "all" received as response to an -I query
+multiple=0		# -m option
+noclobber=0		# -C option
+talkonly=0		# -n option
+verbose=0		# -R option
+
+# process the options
+
+while getopts abCdfuh?iIlLmnpPrRsS:uvV:x option
+do
+	case $option in
+		i | b | f | u)
+			# options for mv or cp
+			mvopts="$mvopts -$option"
+		;;
+		a | d | l | p | P | r | R | s | x)
+			# options for cp only
+			if [ $mv = "cp" ]
+			then
+				mvopts="$mvopts -$option"
+			else
+				usage
+			fi
+		;;
+		C)
+			noclobber=1
+		;;
+		h)
+			# display manpage, then exit
+			help
+			exit 0
+		;;
+		I)
+			interactive=1
+		;;
+		m)
+			multiple=1
+		;;
+		n)
+			talkonly=1
+		;;
+		L)
+			verbose=1
+		;;
+		S | V)
+			mvopts="$mvopts -$option $OPTARG"
+		;;
+		v)
+			# print version and exit
+			echo -n "$cmdname version $version, using "
+			$mv --version
+			exit 0
+		;;
+		'?' | *)
+			usage
+		;;
+	esac
+done
+
+# now get the rest of the arguments, minus the options
+
+while [ $OPTIND -gt 1 ]
+do
+	OPTIND=$(($OPTIND-1))
+	shift
+done
+
+# there should be a minimum of 3 arguments: pattern replacement filename
+
+if [ $# -lt 3 ]
+then
+	usage
+fi
+
+# talkonly=1	# protective safety to be enabled during debugging.
+
+pattern=$1
+replacement=$2
+
+# absorb those first 2 arguments.  The rest are the list of files, in $@
+
+shift
+shift
+
+if [ "$pattern" = "" ]
+then
+	echo "$cmdname: the pattern (argument 1) is not allowed to be a null string."
+	exit 1
+fi
+
+# do the operation on each file listed in the arguments
+
+for file in "$@"
+do
+	# in case a nonexistent file was named in the argument list
+
+	if [ ! -e "$file" ]
+	then
+		echo "$cmdname: $file does not exist"
+		continue
+	fi
+
+	# either replace all pattern matches or just one of them
+
+	if [ $multiple -eq 1 ]
+	then
+		newname=${file//${pattern}/${replacement}}
+	else
+		newname=${file/${pattern}/${replacement}}
+	fi
+
+	# if new file name is the same as the old one, just skip it
+	# (this usually happens because the pattern didn't match)
+
+	if [ "$file" = "$newname" ]
+	then
+		if [ $verbose -eq 1 ]
+		then
+			echo "$cmdname: skipping $file - no change in name"
+		fi
+		continue
+	fi
+
+	if [ $talkonly -eq 1 ]
+	then
+		# just report what would be done
+		echo "$mv $mvopts \"$file\" \"$newname\""
+	else
+		if [ $noclobber -eq 1 -a -e "$newname" ]
+		then
+			echo "$cmdname: $newname already exists - refusing to overwrite"
+		else
+			if [ $interactive -eq 1 -a $interactive_all -eq 0 ]
+			then
+				echo -n "rename \"$file\" to \"$newname\"? "
+				read response
+				case $response in
+					y | Y | Yes | yes | YES)
+						# drop through to mv/cp cmd
+					;;
+					A | a | All | all | ALL)
+						interactive_all=1
+					;;
+					Q | q | Quit | quit | QUIT)
+						exit 0
+					;;
+					*)
+						# "no" or whatever
+						continue
+					;;
+				esac
+			fi
+
+			if $mv $mvopts -- "$file" "$newname" && [ $verbose = 1 ]
+			then
+				# if the mv/cp succeeds and we're in
+				# verbose mode, report what was done
+				echo "$mv $mvopts \"$file\" \"$newname\""
+			fi
+		fi
+	fi
+done
