@@ -60,8 +60,8 @@ If the pattern begins with a **#**, it must match at the beginning of the file n
 
 -m	Perform multiple substitutions. If pattern exists more
 	than once in the original file name, it will be replaced
-	for each occurrance. Without the -m option, only the first
-	occurrance will be replaced.
+	for each occurrence. Without the -m option, only the first
+	occurrence will be replaced.
 
 -n	Don't rename or copy files; just tell what would be done.
 	(Show the exact mv or cp commands that would execute.)
@@ -100,7 +100,7 @@ Example 2: Replacing
 $ mvgp new old *new*
 ```
 
-For each file in the current directory that has the string "new" anywhere in its name, replace the first occurrance of "new" with "old". Files called ...
+For each file in the current directory that has the string "new" anywhere in its name, replace the first occurrence of "new" with "old". Files called ...
 
 ```
 the-new-version.c

@@ -1,3 +1,7 @@
+## Description
+
+This repository contains the **mvgp** (group file renaming) command and support files.
+
 ## Version
 
 This is the distribution of **mvgp** and **cpgp**, version 1.2, February 2000. This README.md file was updated in June of 2019.
@@ -21,7 +25,7 @@ IMG-20180323-45265.JPG
 and you want more descriptive file names. The following command
 
 ```
-$ mvgp IMG-20180323-452 BellRock-24March2018- *.JPG
+$ mvgp  IMG-20180323-452  BellRock-24March2018-  *.JPG
 ```
 
 will rename the files to
@@ -37,14 +41,58 @@ BellRock-24March2018-65.JPG
 and then the command
 
 ```
-mvgp JPG jpg *.JPG
+$ mvgp  JPG  jpg  *.JPG
 ```
 
-Changes the uppercase ```JPG``` extension to lowercase.
+Changes the uppercase **JPG** extension to lowercase.
 
-The first argument is what to change, the second is what to change it to, and the rest of the arguments are the names of files to modify.
+The first argument is what to change, the second is what to change it to, and the rest of the arguments are the names of files to rename or copy.
 
-The first argument may use bash's pattern matching operators to match a pattern, rather than a literal string. And of course, the list of files to rename or copy may be specified by the shell's file globbing operators (__*__, **?**, and others).
+The first argument may use Bash's pattern matching operators to match a pattern, rather than a literal string. And of course, the list of files to rename or copy may be specified by the shell's file globbing operators (__*__, **?**, and **[]**).
+
+## More Examples
+
+Append **.txt** to the names of all files in the directory:
+
+```
+$ ls
+abc  def  ghi  jkl
+$ mvgp '%' .txt *
+$ ls
+abc.txt  def.txt  ghi.txt  jkl.txt
+```
+
+Prepend **filename.** to the names of all files starting with **a** or **d**:
+
+```
+$ ls
+abc  def  ghi  jkl
+$ mvgp '#' filename. [ad]*
+$ ls
+filename.abc  filename.def  ghi  jkl
+```
+
+Change every occurence of **a** to **o** in files starting with a **d**:
+
+```
+$ ls
+aaa  abc  abe  backup  bad  cab  cabe  dab  dala  fab
+$ mvgp -m a o d*
+$ ls
+aaa  abc  abe  backup  bad  cab  cabe  dob  dolo  fab
+```
+
+Change the three-character string of composed of any character, followed by an **a**, followed by any character, to **aoe** in the names of all files in the current working directory:
+
+```
+$ ls
+aaa  abc  abe  backup  bad  cab  cabe  dob  dolo  fab
+$ mvgp '?a?' aoe *
+$ ls
+abc  abe  aoe  aoee  aoekup  dob  dolo
+```
+
+Notice that this renamed three files to **aoe**, and as a result, two files were lost. Be careful; **mvgp** is a powerful command. If in doubt, use the **-C** (noclobber), **-I** (interactive), **-n** ("nop", or no operation) options to keep **mvgp** from performing unwanted actions.
 
 ## Installation
 
@@ -56,7 +104,7 @@ $ sudo make install
 
 (**sudo** is necessary only if you are copying to a system directory, or any other that your regular account does not have permission to write to.)
 
-### Manual Page
+### Manual Page Installation
 
 To install the manual page for **mvgp**, edit **Makefile** to set **MANDIR** to the directory where you want **mvgp** manual page to be located, then run this command:
 
@@ -70,7 +118,7 @@ Run the command `man mvgp` to read the manual page, or `mvgp -h` to read a manpa
 
 ## Manual Page
 
-A copy of the manual page is included here for convenience. To display it better, install it on your system and use the `man` command to view it.
+A copy of the manual page is included here for convenience. To display it better, install it on your system and use a `man mvgp` command to view it.
 
 ```
 MVGP(1)                          User Commands                         MVGP(1)
@@ -104,7 +152,7 @@ DESCRIPTION
 
 SPECIFYING PATTERNS
        pattern is treated as a pattern that can match parts of file  names  in
-       the  argument  list  using the *,? and [] metacharacters. This matching
+       the  argument  list using the *, ? and [] metacharacters. This matching
        happens after the shell has created a list of filenames, which may also
        involve expanding metacharacters.
 
@@ -144,8 +192,8 @@ OPTIONS
 
        -m  Perform multiple substitutions. If pattern exists more
            than once in the original file name, it will be replaced
-           for each occurrance. Without the -m option, only the first
-           occurrance will be replaced.
+           for each occurrence. Without the -m option, only the first
+           occurrence will be replaced.
 
        -n  Don´t rename or copy files; just tell what would be done.
            (Show the exact mv or cp commands that would execute.)
@@ -177,7 +225,7 @@ EXAMPLES
            $ mvgp new old *new*
 
        For each file in the current directory that has the string  "new"  any‐
-       where  in  its  name, replace the first occurrance of "new" with "old".
+       where  in  its  name, replace the first occurrence of "new" with "old".
        Files called ...
 
            the-new-version.c
@@ -264,7 +312,7 @@ EXAMPLES
 IMPLEMENTATION
        mvgp and cpgp are implemented as a single bash shell script. Both  com‐
        mands  are actually the same program; the function is determined by the
-       name of the executable file. cpgp is simply a  symbolic  link  to  mvgp
+       name of the executable file. cpgp is simply a symbolic link to the mvgp
        script.
 
 BUGS

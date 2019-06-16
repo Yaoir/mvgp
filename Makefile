@@ -1,6 +1,6 @@
 # Makefile for mvgp command
 
-# set MANDIR to where you want the mvgp and cpgp programs installed
+# set BINDIR to where you want the mvgp and cpgp programs installed
 BINDIR=/home/jay/.bin
 
 # set MANDIR to where you want the manual page installed
@@ -26,11 +26,8 @@ install:
 install-man:
 	@cp man1/mvgp.1.gz $(MANDIR)
 
-wc:
-	@wc -l mvgp
-
 clean:
-	rm -f man1/mvgp.1 man1/mvgp.1.gz
+	rm -f man1/mvgp.1.gz
 
 backup back bak:
 	@cp -a cpgp Makefile man1 mvgp mvgp.1.ronn README.md TODO .bak

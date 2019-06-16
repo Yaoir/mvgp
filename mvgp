@@ -1,4 +1,4 @@
-#!/bin/bash2
+#!/bin/bash
 
 ############  mvgp: move group (or cpgp: copy group) #############
 
@@ -64,7 +64,7 @@ involve expanding metacharacters.
 
 If the pattern begins with a '#', it must match at the beginning of the
 file name.  If the pattern begins with a '%', it must match at the end of
-the file name.  See the section on \"Parameter Expansion\" in the bash2(1)
+the file name.  See the section on \"Parameter Expansion\" in the bash(1)
 manual page for details.
 
 OPTIONS
@@ -217,7 +217,7 @@ the directory \"backburner/source-code\".
 IMPLEMENTATION
 --------------
 
-mvgp and cpgp are implemented as a single bash2 shell script.  Both commands
+mvgp and cpgp are implemented as a single bash shell script.  Both commands
 are actually the same program; the function is determined by the name of the
 executable file.  Thus, it is important that the program either be called
 \"mvgp\" or \"cpgp\", and a symbolic link can be made to it with the other
@@ -226,7 +226,7 @@ command's name.
 SEE ALSO
 --- ----
 
-cp(1), mv(1), bash2(1)
+cp(1), mv(1), bash(1)
 
 COPYRIGHT
 ---------
